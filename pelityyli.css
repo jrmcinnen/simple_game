@@ -1,0 +1,16 @@
+#myCanvas {
+  border: 5px solid blue;
+  background-color: powderblue;
+}
+h1 {
+  witdh: 1000px;
+  text-align: center;
+}
+
+#canvas {
+  text-align: center;
+}
+
+#message {
+  padding-top: 100vh;
+}

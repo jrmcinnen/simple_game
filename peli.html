@@ -1,0 +1,181 @@
+<!--Yksinkertainen peli
+Jere Mäkinen 14.5.2020-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Peli</title>
+    <link rel=stylesheet href="pelityyli.css">
+  </head>
+  <body>
+    <h1 id="heading">The Easy Game</h1>
+    <div id="canvas">
+      <canvas id="myCanvas" width="1000" height="500" />
+      <p id="message">Good luck!</p>
+    </div>
+      <script type="text/javascript">
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+
+        const screenWidth = 1000;
+        const screenHeight = 500;
+        const playerSpeed = 6;
+
+        var isLeftKeyPressed = false;
+        var isRightKeyPressed = false;
+
+        class Character {
+          constructor(x,y,width,height,speed,color) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.speedX = speed;
+            this.speedY = speed;
+            this.color = color;
+          }
+          moveX(Amount) {
+            if(this.x >= 0 || Amount >= 0){
+              this.x += Amount;
+            }
+          }
+          moveY(Amount) {
+            this.y += Amount;
+          }
+        }
+
+        var player = new Character(5,screenHeight/2,35,35,0,"rgb(34,139,34)");
+        var goal = new Character(screenWidth-50,0,5,screenHeight,0,"rgb(0,0,0)")
+
+        var rectangle1 = new Character(250,50,50,50,2,"rgb(255,99,71)");
+        var rectangle2 = new Character(500,200,50,50,4,"rgb(255,69,0)");
+        var rectangle3 = new Character(750,400,50,50,6,"rgb(255,0,0)");
+
+        var rectangles = [rectangle1,rectangle2,rectangle3];
+
+        var images = {};
+
+        var loadImages = function() {
+          images.player = new Image();
+          images.player.src = "stickman.png";
+        }
+
+        document.onkeydown = function(event) {
+          var keyPressed = event.keyCode;
+          if (keyPressed == 68){
+            player.speedX = playerSpeed;
+            isRightKeyPressed = true;
+          } else if (keyPressed == 65){
+            player.speedX = -playerSpeed;
+            isLeftKeyPressed = true;
+          }
+          document.getElementById("heading").innerHTML = "The Easy Game";
+        };
+
+        document.onkeyup = function(event) {
+          var keyUp = event.keyCode;
+          if (keyUp == 68){
+            isRightKeyPressed = false;
+            if(isLeftKeyPressed){
+              player.speedX = -playerSpeed;
+            } else {
+              player.speedX = 0;
+            }
+          } else if (keyUp == 65) {
+            isLeftKeyPressed = false;
+            if(isRightKeyPressed){
+                player.speedX = playerSpeed;
+            } else {
+              player.speedX = 0;
+            }
+          }
+        }
+
+        var update = function() {
+          player.moveX(player.speedX);
+          player.moveY(player.speedY);
+          rectangles.forEach(function(rectangle){
+            if ((rectangle.y > screenHeight-rectangle.height) || (rectangle.y < 0)){
+              rectangle.speedY = -rectangle.speedY;
+            }
+            rectangle.moveY(rectangle.speedY);
+          })
+          rectangles.forEach(function(rectangle){
+            var isGameOver = checkCollisions(player,rectangle)
+            if (isGameOver) {
+              alert("Game Over");
+              document.getElementById("heading").innerHTML = "Try again";
+              resetPlayer();
+            }
+          });
+          var isGameWon = checkCollisions(player,goal);
+          if (isGameWon){
+            alert("You won!");
+            resetPlayer();
+            rectangles.forEach(function(rectangle){
+              rectangle.speedY = 1.3*rectangle.speedY;
+            });
+            document.getElementById("heading").innerHTML = "Congratulations!"
+          }
+        }
+
+        var checkCollisions = function(obj1,obj2) {
+          var isCollision = false;
+          var isCollisionX = false;
+          var isCollisionY = false;
+
+          if (obj1.x <= obj2.x) {
+            if((obj2.x - obj1.x) < Math.min(obj1.width,obj2.width)) {
+              isCollisionX = true;
+            }
+          } else {
+            if((obj1.x - (obj2.x)) < Math.max(obj1.width,obj2.width)) {
+              isCollisionX = true;
+            }
+          }
+          if (obj1.y <= obj2.y) {
+            if((obj2.y - obj1.y) < Math.min(obj1.height,obj2.height)) {
+              isCollisionY = true;
+            }
+          } else {
+            if((obj1.y - obj2.y) < Math.max(obj1.height,obj2.height)) {
+              isCollisionY = true;
+            }
+          }
+          if (isCollisionX && isCollisionY) {
+            isCollision = true;
+          }
+          return isCollision;
+        }
+
+        var resetPlayer = function() {
+          player.x = 5;
+          player.y = screenHeight/2;
+          player.speedX = 0;
+        }
+
+        var draw = function() {
+          ctx.clearRect(0,0, screenWidth, screenHeight);
+          ctx.fillStyle = goal.color;
+          ctx.fillRect(goal.x,goal.y,goal.width,goal.height);
+          ctx.drawImage(images.player,player.x,player.y);
+          rectangles.forEach(function(rectangle) {
+            ctx.fillStyle = rectangle.color;
+            ctx.fillRect(rectangle.x, rectangle.y,
+            rectangle.width, rectangle.height);
+          })
+
+        }
+
+        var step = function() {
+            update();
+            draw();
+            window.requestAnimationFrame(step);
+        }
+
+        loadImages();
+        step();
+      </script>
+  </body>
+</html>
